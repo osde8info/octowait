@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from datetime import datetime, timedelta
-import json, math, urllib2
+import json, math, urllib3
 from inky import InkyPHAT
 from PIL import Image, ImageFont, ImageDraw
 
@@ -19,10 +19,12 @@ start = (time - timedelta(minutes = 30)).isoformat() + 'Z'
 end = (time + timedelta(hours=(max_range/periods_per_hour+duration/periods_per_hour))).isoformat() + 'Z'
 
 url = url + '?period_from='+start+'&period_to='+end
-response = urllib2.urlopen(url)
-data = json.loads(response.read())['results']
+pm = urllib3.PoolManager()
+response = pm.request('GET', url)
+data = json.loads(response.data)['results']
 data.reverse()
-result = map(lambda x:x[value],data)
+# print(data)
+result = list(map(lambda x:x['value_exc_vat'],data))
 maxi = max(result)
 mini = min(result)
 
@@ -126,15 +128,15 @@ for i in range(0,len(result)):
     if ((i >= cheapest_index) & (i < cheapest_index + duration)):
         fill = white
     if (val < 0):
-        draw.rectangle([start_x + (i*bar_width), zero_y, (i*bar_width)+start_x+bar_width-1, zero_y - (y_step * val)], fill=fill, outline=grey)
+        z=0#draw.rectangle([start_x + (i*bar_width), zero_y, (i*bar_width)+start_x+bar_width-1, zero_y - (y_step * val)], fill=fill, outline=grey)
     elif (val > 0):
-        draw.rectangle([start_x + (i*bar_width), zero_y, (i*bar_width)+start_x+bar_width-1, zero_y - (y_step * val)], fill=fill, outline=grey)
+        z=0#draw.rectangle([start_x + (i*bar_width), zero_y, (i*bar_width)+start_x+bar_width-1, zero_y - (y_step * val)], fill=fill, outline=grey)
     else:
-        draw.rectangle([start_x + (i*bar_width), zero_y, (i*bar_width)+start_x+bar_width-1, zero_y], fill=fill, outline=grey)
+        z=0#draw.rectangle([start_x + (i*bar_width), zero_y, (i*bar_width)+start_x+bar_width-1, zero_y], fill=fill, outline=grey)
 
 #img.save("img.png")
 if (flip):
     img = img.rotate(180)
 inkyphat.set_image(img)
-inkyphat.show()
+#inkyphat.show()
 
